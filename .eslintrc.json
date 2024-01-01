@@ -14,15 +14,20 @@
 		"no-underscore-dangle": "off",
 		"class-methods-use-this": "off",
 		"prefer-destructuring": [
-			"error",
-			{ "object": true, "array": false }
+			"warn",
+			{
+				"object": true,
+				"array": false
+			}
 		],
 		"no-unused-vars": [
 			"warn",
-			{ "argsIgnorePattern": "req|res|next|value" }
+			{
+				"argsIgnorePattern": "req|res|next|val"
+			}
 		],
 		"radix": "off",
-		"node/no-unsupported-features/es-syntax": ["off"],
-		"import/no-extraneous-dependencies": ["off"]
+		"node/no-unsupported-features/es-syntax": "off",
+		"import/no-extraneous-dependencies": "off"
 	}
 }
