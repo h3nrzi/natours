@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
-console.log('ENV:', app.get('env'));
+console.log('🔷 ENV:', app.get('env'));
 
 const DB = process.env.DATABASE_CLOUD.replace('<PASSWORD>', process.env.DATABASE_CLOUD_PASSWORD);
 // const DB = process.env.DATABASE_LOCAL;
@@ -19,5 +19,5 @@ mongoose
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-	console.log(`App running on ${port}...`);
+	console.log(`🔷 App running on ${port}...`);
 });
