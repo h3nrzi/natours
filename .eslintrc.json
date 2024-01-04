@@ -28,6 +28,7 @@
 		],
 		"radix": "off",
 		"node/no-unsupported-features/es-syntax": "off",
+		"node/no-unsupported-features/es-builtins": "off",
 		"import/no-extraneous-dependencies": "off"
 	}
 }
