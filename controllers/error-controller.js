@@ -31,8 +31,13 @@ function sendErrorProd(err, res) {
 ///////////
 
 function handleCastErrorDB(error) {
-	console.log(2);
 	const message = `Invalid ${error.path}: ${error.value}`;
+	return new AppError(message, 400);
+}
+
+function handleDuplicateFieldsDB(error) {
+	// const value = error.message.match(/(["'])(\\?.)*?\1/);
+	const message = `Duplicate field value: "${error.keyValue.name}" Please use another value`;
 	return new AppError(message, 400);
 }
 
@@ -48,6 +53,7 @@ function globalErrorHandler(err, req, res, next) {
 		let error = JSON.parse(JSON.stringify(err));
 
 		if (error.name === 'CastError') error = handleCastErrorDB(error);
+		if (error.code === 11000) error = handleDuplicateFieldsDB(error);
 
 		sendErrorProd(error, res);
 	}
