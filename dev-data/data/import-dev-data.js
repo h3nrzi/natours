@@ -11,9 +11,10 @@ mongoose
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
-		useUnifiedTopology: true
+		useUnifiedTopology: true,
+		authSource: 'admin'
 	})
-	.then(() => console.log('DB connection successful!'));
+	.then(() => console.log('🔷 DB connection successful!'));
 
 ////////////////// READ JSON FILE
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'));

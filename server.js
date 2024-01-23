@@ -1,5 +1,5 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 
 process.on('uncaughtException', (err) => {
 	console.log(err.name, err.message);
@@ -7,10 +7,7 @@ process.on('uncaughtException', (err) => {
 	process.exit(1);
 });
 
-dotenv.config({ path: './config.env' });
 const app = require('./app');
-
-console.log('🔷 ENV:', app.get('env'));
 
 const DB = process.env.DATABASE_URL;
 mongoose
@@ -18,7 +15,8 @@ mongoose
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
-		useUnifiedTopology: true
+		useUnifiedTopology: true,
+		authSource: 'admin'
 	})
 	.then(() => console.log('🔷 DB connection successful!'));
 // .catch((err) => console.log('🔷 ERROR'));
