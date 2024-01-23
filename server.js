@@ -12,8 +12,7 @@ const app = require('./app');
 
 console.log('🔷 ENV:', app.get('env'));
 
-const DB = process.env.DATABASE_CLOUD.replace('<PASSWORD>', process.env.DATABASE_CLOUD_PASSWORD);
-// const DB = process.env.DATABASE_LOCAL;
+const DB = process.env.DATABASE_URL;
 mongoose
 	.connect(DB, {
 		useNewUrlParser: true,

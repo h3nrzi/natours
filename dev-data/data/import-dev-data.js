@@ -1,12 +1,11 @@
+require('dotenv').config();
 const fs = require('fs');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const Tour = require('../../models/tour-model');
 
-dotenv.config({ path: './config.env' });
+/////////////// CONNECT TO DB
 
-const DB = process.env.DATABASE_CLOUD.replace('<PASSWORD>', process.env.DATABASE_CLOUD_PASSWORD);
-// const DB = process.env.DATABASE_LOCAL;
+const DB = process.env.DATABASE_URL;
 mongoose
 	.connect(DB, {
 		useNewUrlParser: true,
@@ -16,10 +15,10 @@ mongoose
 	})
 	.then(() => console.log('DB connection successful!'));
 
-// READ JSON FILE
+////////////////// READ JSON FILE
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8'));
 
-// IMPORT DATA INTO DATA DB
+////////////////// IMPORT DATA INTO DATA DB
 const importData = async () => {
 	try {
 		await Tour.create(tours);
@@ -30,7 +29,7 @@ const importData = async () => {
 	}
 };
 
-// DELETE ALL DATA FROM COLLECTION
+///////////////// DELETE ALL DATA FROM COLLECTION
 const deleteData = async () => {
 	try {
 		await Tour.deleteMany();
