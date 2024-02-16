@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -38,7 +39,9 @@ const userSchema = new mongoose.Schema({
 			message: 'Passwords are not the same!'
 		}
 	},
-	passwordChangedAt: Date
+	passwordChangedAt: Date,
+	passwordResetToken: String,
+	passwordResetExpired: Date
 });
 
 ///////////////////////// DOCUMENT MIDDLEWARE
@@ -58,7 +61,7 @@ userSchema.pre('save', async function(next) {
 });
 
 ////////////////////// INSTANCE METHOD
-// Note: this points to the current document
+// Note: "this" points to the current document
 
 userSchema.methods.comparePasswords = async function(candidatePassword) {
 	return await bcrypt.compare(candidatePassword, this.password);
@@ -72,6 +75,23 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
 
 	// False means NOT changed!
 	return false;
+};
+
+userSchema.methods.createPasswordResetToken = function() {
+	// Generate a random token
+	const resetToken = crypto.randomBytes(32).toString('hex');
+
+	// Hash the token using SHA-256 algorithm
+	this.passwordResetToken = crypto
+		.createHash('sha256')
+		.update(resetToken)
+		.digest('hex');
+
+	// Set expiration time to 10 minutes from the current time
+	this.passwordResetExpired = Date.now() + 10 * 60 * 1000;
+
+	// Return the unhashed token for sending to the user
+	return resetToken;
 };
 
 module.exports = mongoose.model('User', userSchema);
