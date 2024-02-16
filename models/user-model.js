@@ -32,7 +32,8 @@ const userSchema = new mongoose.Schema({
 			},
 			message: 'Passwords are not the same!'
 		}
-	}
+	},
+	passwordChangedAt: Date
 });
 
 ///////////////////////// DOCUMENT MIDDLEWARE
@@ -52,9 +53,20 @@ userSchema.pre('save', async function(next) {
 });
 
 ////////////////////// INSTANCE METHOD
+// Note: this points to the current document
 
 userSchema.methods.comparePasswords = async function(candidatePassword) {
 	return await bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+	if (this.passwordChangedAt) {
+		const passwordChangedAt = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+		return JWTTimestamp < passwordChangedAt;
+	}
+
+	// False means NOT changed!
+	return false;
 };
 
 module.exports = mongoose.model('User', userSchema);
