@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user-model');
@@ -5,7 +6,7 @@ const catchAsync = require('../utils/catch-async');
 const AppError = require('../utils/app-error');
 const sendEmail = require('../utils/email');
 
-function signupToken(id) {
+function signToken(id) {
 	const { JWT_SECRET, JWT_EXPIRES_IN } = process.env;
 	return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
@@ -26,7 +27,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		role
 	});
 
-	const token = signupToken(newUser._id);
+	const token = signToken(newUser._id);
 	res.status(201).json({
 		status: 'success',
 		token,
@@ -45,7 +46,7 @@ exports.login = catchAsync(async (req, res, next) => {
 		return next(new AppError('Incorrect email and password', 401));
 
 	// 3) If everything ok, send token to client
-	const token = signupToken(user._id);
+	const token = signToken(user._id);
 	res.status(200).json({
 		status: 'success',
 		token
@@ -112,12 +113,36 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 		user.passwordResetExpired = undefined;
 		await user.save({ validateBeforeSave: false });
 
-		console.log('hi', { error });
-
 		return next(new AppError('There was an error sending the email. Try again later!', 500));
 	}
 
 	// 4) Respond with success status and message
 	res.status(200).json({ status: 'success', message: 'Token sent to your email!' });
 });
-exports.resetPassword = (req, res, next) => {};
+
+exports.resetPassword = async (req, res, next) => {
+	console.log('hi');
+	// 1) Find user with matching hashed token and valid expiration date
+	const hashedToken = crypto
+		.createHash('sha256')
+		.update(req.params.token)
+		.digest('hex');
+	const user = await User.findOne({
+		passwordResetToken: hashedToken,
+		passwordResetExpired: { $gt: Date.now() }
+	});
+	if (!user) return next(new AppError('Invalid or expired token', 400));
+
+	// 2) Update user's password and clear reset token and expiration date
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+	user.passwordResetToken = undefined;
+	user.passwordResetExpired = undefined;
+	await user.save();
+
+	// 3) Sign a new authentication token for the user
+	const token = signToken(user._id);
+
+	// 4) Respond with success status, new token, and updated user data
+	res.status(201).json({ status: 'success', token, data: { user } });
+};

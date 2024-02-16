@@ -60,6 +60,16 @@ userSchema.pre('save', async function(next) {
 	next();
 });
 
+// Update changedPasswordAt
+userSchema.pre('save', function(next) {
+	// Check if password is modified or it's a new user
+	if (!this.isModified('password') || this.isNew) return next();
+
+	// Update changedPasswordAt field
+	this.passwordChangedAt = Date.now() - 1000;
+	next();
+});
+
 ////////////////////// INSTANCE METHOD
 // Note: "this" points to the current document
 
