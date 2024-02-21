@@ -26,6 +26,12 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 	res.status(200).json({ status: 'success', data: { updatedUser } });
 });
 
+// DELETES THE CURRENT USER BY SETTING THEIR 'ACTIVE' STATUS TO FALSE IN THE DATABASE.
+exports.deleteMe = catchAsync(async (req, res, next) => {
+	await User.findByIdAndUpdate(req.user.id, { active: false });
+	res.status(204).json({ status: 'success', data: null });
+});
+
 exports.getAllUsers = catchAsync(async (req, res, next) => {
 	const users = await User.find();
 
