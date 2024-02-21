@@ -16,6 +16,18 @@ async function verifyToken(token) {
 	return await promisify(jwt.verify)(token, JWT_SECRET);
 }
 
+function createAndSendToken(user, statusCode, res) {
+	const token = signToken(user._id);
+
+	res.status(statusCode).json({
+		status: 'success',
+		token,
+		data: { user: user }
+	});
+}
+
+//////////////////////
+
 exports.signup = catchAsync(async (req, res, next) => {
 	const { name, email, password, passwordConfirm, passwordChangedAt, role } = req.body;
 	const newUser = await User.create({
@@ -27,12 +39,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		role
 	});
 
-	const token = signToken(newUser._id);
-	res.status(201).json({
-		status: 'success',
-		token,
-		data: { user: newUser }
-	});
+	createAndSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -46,11 +53,7 @@ exports.login = catchAsync(async (req, res, next) => {
 		return next(new AppError('Incorrect email and password', 401));
 
 	// 3) If everything ok, send token to client
-	const token = signToken(user._id);
-	res.status(200).json({
-		status: 'success',
-		token
-	});
+	createAndSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -121,7 +124,6 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 });
 
 exports.resetPassword = async (req, res, next) => {
-	console.log('hi');
 	// 1) Find user with matching hashed token and valid expiration date
 	const hashedToken = crypto
 		.createHash('sha256')
@@ -140,9 +142,27 @@ exports.resetPassword = async (req, res, next) => {
 	user.passwordResetExpired = undefined;
 	await user.save();
 
-	// 3) Sign a new authentication token for the user
-	const token = signToken(user._id);
-
-	// 4) Respond with success status, new token, and updated user data
-	res.status(201).json({ status: 'success', token, data: { user } });
+	// 3) Sign a new authentication token for the user,
+	// Respond with success status, new token, and updated user data
+	createAndSendToken(user, 200, res);
 };
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+	console.log('Hi');
+	// 1)
+	const user = await User.findById(req.user.id).select('+password');
+
+	// 2)
+	if (!(await user.comparePasswords(req.body.passwordCurrent)))
+		return next(new AppError('رمز عبور فعلی شما اشتباه است!', 401));
+
+	console.log('Hi');
+
+	// 3)
+	user.password = req.body.password;
+	user.passwordConfirm = req.body.passwordConfirm;
+	await user.save(); // User.findByIdAndUpdate will NOT work!!!
+
+	// 4)
+	createAndSendToken(user, 200, res);
+});
