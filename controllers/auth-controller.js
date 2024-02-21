@@ -147,22 +147,20 @@ exports.resetPassword = async (req, res, next) => {
 	createAndSendToken(user, 200, res);
 };
 
+// UPDATES THE PASSWORD FOR THE CURRENT USER
 exports.updatePassword = catchAsync(async (req, res, next) => {
-	console.log('Hi');
-	// 1)
+	// 1) Fetch the user by id and select password field
 	const user = await User.findById(req.user.id).select('+password');
 
-	// 2)
+	// 2) Check if the provided current password matches the stored password
 	if (!(await user.comparePasswords(req.body.passwordCurrent)))
 		return next(new AppError('رمز عبور فعلی شما اشتباه است!', 401));
 
-	console.log('Hi');
-
-	// 3)
+	// 3) Update user's password and password confirmation
 	user.password = req.body.password;
 	user.passwordConfirm = req.body.passwordConfirm;
 	await user.save(); // User.findByIdAndUpdate will NOT work!!!
 
-	// 4)
+	// 4) Create and send token along with updated user data
 	createAndSendToken(user, 200, res);
 });
