@@ -17,8 +17,21 @@ async function verifyToken(token) {
 }
 
 function createAndSendToken(user, statusCode, res) {
-	const token = signToken(user._id);
+	// 1)
+	const { JWT_COOKIE_EXPIRES_IN, NODE_ENV } = process.env;
+	const cookieOptions = {
+		expires: new Date(Date.now() + JWT_COOKIE_EXPIRES_IN * 8640000),
+		httpOnly: true
+	};
+	if (NODE_ENV === 'production') cookieOptions.secure = true;
 
+	const token = signToken(user._id);
+	res.cookie('jwt', token, cookieOptions);
+
+	// 2)
+	user.password = undefined;
+
+	// 3)
 	res.status(statusCode).json({
 		status: 'success',
 		token,
