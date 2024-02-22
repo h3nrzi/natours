@@ -16,22 +16,30 @@ async function verifyToken(token) {
 	return await promisify(jwt.verify)(token, JWT_SECRET);
 }
 
+/**
+ * Creates a JWT token, sets it as a cookie, and sends it along with user data as a response.
+ * @param {object} user - User object containing user information.
+ * @param {number} statusCode - HTTP status code to be sent in the response.
+ * @param {object} res - Express response object.
+ */
 function createAndSendToken(user, statusCode, res) {
-	// 1)
+	// Set cookie options including expiration time and HTTP only flag
 	const { JWT_COOKIE_EXPIRES_IN, NODE_ENV } = process.env;
 	const cookieOptions = {
 		expires: new Date(Date.now() + JWT_COOKIE_EXPIRES_IN * 8640000),
 		httpOnly: true
 	};
+	// If in production, set cookie secure flag
 	if (NODE_ENV === 'production') cookieOptions.secure = true;
 
+	// Generate JWT token and set it as a cookie
 	const token = signToken(user._id);
 	res.cookie('jwt', token, cookieOptions);
 
-	// 2)
+	// Remove sensitive information (password) from user object
 	user.password = undefined;
 
-	// 3)
+	// Send success response with token and user data
 	res.status(statusCode).json({
 		status: 'success',
 		token,
