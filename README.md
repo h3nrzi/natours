@@ -1,4 +1,4 @@
-# Natours 🌍
+# Natours - Tour Booking Api
 
 A modern, feature-rich tour booking application built with Node.js, Express, and MongoDB. This project demonstrates advanced backend development concepts including authentication, authorization, data modeling, and API design.
 
